@@ -38,7 +38,7 @@ OrionVM offers full support for ovm-ctl on our debian-lenny and ubuntu-lucid ima
 CentOS is not supported at this time.
 
 Debian package available here:
-https://github.com/orionvm/ovm-ctl/blob/master/package/ovm-ctl-0.1.1.deb?raw=true
+https://github.com/orionvm/ovm-ctl/blob/master/package/ovm-ctl-latest.deb?raw=true
 
 Ready-to-install tar.gz:
-https://github.com/orionvm/ovm-ctl/blob/master/package/ovm-ctl-0.1.1.tar.gz?raw=true
+https://github.com/orionvm/ovm-ctl/blob/master/package/ovm-ctl-latest.tar.gz?raw=true
