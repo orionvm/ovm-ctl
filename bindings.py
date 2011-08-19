@@ -2,7 +2,7 @@ DEBUG=False # Change this to true to have --debug by default. Useful if code is 
 
 import sys
 import re
-from webbindings import apibindings, extra_r
+from webbindings import apibindings, extra_r, CurlException
 import routes
 import os
 import getpass
@@ -99,7 +99,7 @@ def repl(api, istty):
 		if not istty and ret:
 			return ret
 
-def creds(isatty, user=None, pswd=None, credfile=None):
+def get_creds(isatty, user=None, pswd=None, credfile=None):
 	credfile_default = os.path.expanduser("~/.orionauth")
 
 	asksave = False
@@ -143,6 +143,26 @@ def creds(isatty, user=None, pswd=None, credfile=None):
 				break
 
 	return (user, pswd)
+
+def creds(isatty, user=None, pswd=None, credfile=None):
+	while 1:
+		user, pswd = get_creds(isatty, user=user, pswd=pswd, credfile=credfile)
+		api = apibindings(user, pswd)
+		try:
+			api.vm_pool()	
+			return (user, pswd)
+			
+		except CurlException, e:
+			if e.retcode == 401:
+				if not isatty:
+					raise
+
+				print "Invalid username and/or password"
+				user = None
+				pswd = None
+				credfile = None
+			else:
+				raise
 
 # Dict of distinct options, where each entry is identifier:([short names], [long names], argname, docstring)
 # with argname = '' for no args
