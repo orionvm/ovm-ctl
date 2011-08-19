@@ -68,8 +68,8 @@ gzip "$activedir.tar" || {
 	exit 1
 }
 md5sum "$activedir.tar.gz" > "$activedir.tar.gz.md5"
-ln -s "$activedir.tar.gz" "ovm-ctl-latest.tar.gz"
-ln -s "$activedir.tar.gz.md5" "ovm-ctl-latest.tar.gz.md5"
+cp "$activedir.tar.gz" "ovm-ctl-latest.tar.gz"
+cp "$activedir.tar.gz.md5" "ovm-ctl-latest.tar.gz.md5"
 
 echo "Creating rpm - NOT IMPLEMENTED"
 # TODO
@@ -93,8 +93,8 @@ fakeroot dpkg-deb -b "$activedir" || {
 	exit 1
 }
 md5sum "$activedir.deb" > "$activedir.deb.md5"
-ln -s "$activedir.deb" "ovm-ctl-latest.deb"
-ln -s "$activedir.deb.md5" "ovm-ctl-latest.deb.md5"
+cp "$activedir.deb" "ovm-ctl-latest.deb"
+cp "$activedir.deb.md5" "ovm-ctl-latest.deb.md5"
 
 echo -n "$version" > version
 
