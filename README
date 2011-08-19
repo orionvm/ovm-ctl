@@ -8,7 +8,7 @@ To run, you will require the following:
 	python-simplejson
 	ssh-client
 
-To install:
+To install from the ready-to-install tarball:
 	Copy the usr directory into your root directory:
 		[user@host]$ cp -r usr /
 
@@ -16,6 +16,20 @@ To install:
 		[user@host]$ ovm-ctl
 	and access its man page:
 		[user@host]$ man 1 ovm-ctl
+
+To install from the git repository:
+	Change directory into the "packages" directory.
+	Run the "genpackage" script.
+	If you do not wish to build the deb,
+	you can edit the script and comment out
+	the offending sections "Writing DEBIAN metadata" and "Making debian package".
+	Once the script has run, you can change directory to the new version directory,
+	and from there follow the instructions above for the tarball.
+
+	Alternately, a fully manual install:
+		- Move all the files to an install location of your choosing, such as /usr/share/ovm-ctl
+		- Move "ovm-ctl" to a folder in your PATH, such as /usr/bin
+		- Optionally, run "python gendocs.py > /usr/share/man/man1/ovm-ctl.1" to generate a man page.
 
 Alternately, a debian package is avilable.
 

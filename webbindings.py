@@ -83,8 +83,6 @@ def extra(isatty, api):
 		print 'No moo\tDo have OVM power\tRun with -v'
 		return 0
 	enc = open('extra', 'r').read()
-	if hash(enc) != 358087114:
-		return 1
 	enc = enc.split('\n')
 	partial = [''] * len(enc[0])
 	for x in range(len(enc[0])):
