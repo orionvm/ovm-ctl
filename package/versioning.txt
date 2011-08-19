@@ -1,0 +1,6 @@
+version numbers have the form:
+x.y.z
+
+x: API version number. Only changes when a major (non-backwards compatible) release of the web api is made.
+y: Release number. Changes every major release.
+z: Patch number. Changes for every small patch and bug fix.
