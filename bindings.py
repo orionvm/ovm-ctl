@@ -149,7 +149,7 @@ def creds(isatty, user=None, pswd=None, credfile=None):
 		user, pswd = get_creds(isatty, user=user, pswd=pswd, credfile=credfile)
 		api = apibindings(user, pswd)
 		try:
-			api.vm_pool()	
+			api.details()
 			return (user, pswd)
 			
 		except CurlException, e:
@@ -262,5 +262,6 @@ if __name__ == "__main__":
 		if DEBUG:
 			raise
 		if istty:
+			print 'An error occurred. Perhaps the api is inaccessible?'
 			print ex
 		sys.exit(2)
