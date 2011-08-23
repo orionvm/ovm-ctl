@@ -12,7 +12,7 @@ def attachdisk(diskname, vmname, target, istty, api):
 	      .        Must be of form: "xvd%s%d" ==> ((a, b, c, ..., aa, ab, etc), positive integer),
 	      .        eg: "xvda1", "xvda2", "xvdb1", "xvdb25".
 	      .        Note: "xvdz" is reserved. Valid range is "xvda"-"xvdy", then "xvdaa", etc.'
-        errors: 'For non-existing or invalid VM: Returns exit code 3
+        errors: 'For non-existing or invalid (eg. running) VM: Returns exit code 3
 	        .For non-existing or invalid Disk: Returns exit code 4
 	        .For invalid target: Returns exit code 5'
         """
@@ -20,6 +20,10 @@ def attachdisk(diskname, vmname, target, istty, api):
 	if vm is None:
 		if istty:
 			print "VM %s does not exist" % vmname
+		return 3
+	if vm['state'] != 0:
+		if istty:
+			print "VM %s is not currently shut down" % vmname
 		return 3
 
 	if not diskname in [disk['name'] for disk in api.disk_pool()]:

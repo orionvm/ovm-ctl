@@ -5,7 +5,7 @@ def detachdisk(diskname, vmname, istty, api):
 	description: 'Detach the given disk from the instance its attached to, removing it from that system but freeing it to be destroyed or attached elsewhere.'
 	args: 'DISK: Name of the disk to detach.
 	      .VM: Name of the instance that the disk is currently attached to.'
-	errors: 'VM does not exist: Returns exit code 3
+	errors: 'VM does not exist or is not shut down: Returns exit code 3
 	        .Disk not attached to VM, or disk does not exist: Returns exit code 4'
 	"""
 
@@ -13,6 +13,10 @@ def detachdisk(diskname, vmname, istty, api):
 	if vm is None:
 		if istty:
 			print "VM %s does not exist" % vmname
+		return 3
+	if vm['state'] != 0:
+		if istty:
+			print "VM %s is not shut down" % vmname
 		return 3
 
 	found = False

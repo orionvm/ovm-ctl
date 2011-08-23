@@ -123,7 +123,7 @@ def showdisk(diskname, istty, api):
 	disks = api.disk_pool()
 	for disk in disks:
 		if disk['name'] == diskname:
-			if 'image' not in disk:
+			if 'image' not in disk or not disk['image']:
 				disk['image'] = '[blank]'
 			if istty:
 				print "%(name)s is of image %(image)s and size %(size)dG disk and %(islocked)s locked" % \
