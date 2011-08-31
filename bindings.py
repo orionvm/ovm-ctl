@@ -151,7 +151,7 @@ def creds(isatty, user=None, pswd=None, credfile=None):
 		try:
 			api.details()
 			return (user, pswd)
-			
+
 		except CurlException, e:
 			if e.retcode == 401:
 				if not isatty:
