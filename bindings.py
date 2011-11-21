@@ -126,12 +126,14 @@ def get_creds(isatty, user=None, pswd=None, credfile=None):
 		while True:
 			response = raw_input("Would you like to save your username as the default? [yes/no/never] > ")
 			if response == 'yes':
-				credfd = open(credfile_default, 'w')
-				credfd.write(user+'\n')
+				flags = os.O_RDWR | os.O_CREAT | os.O_EXCL
+				credfd = os.open(credfile_default, flags, 0600)
+				credfp = os.fdopen(credfd, 'w')
+				credfp.write(user+'\n')
 				while True:
 					response = raw_input("Also save your password (this may not be secure)? [yes/no] > ")
 					if response == 'yes':
-						credfd.write(pswd+'\n')
+						credfp.write(pswd+'\n')
 						break
 					elif response == 'no':
 						break
@@ -151,7 +153,7 @@ def creds(isatty, user=None, pswd=None, credfile=None):
 		try:
 			api.details()
 			return (user, pswd)
-			
+
 		except CurlException, e:
 			if e.retcode == 401:
 				if not isatty:
