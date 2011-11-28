@@ -50,7 +50,8 @@ fi
 
 echo "Copying/Generating files"
 mkdir -p "$activedir/usr/share/ovm-ctl" &&
-cp ../*.py ../*.ovm "../unit-tests" "../extra" "$activedir/usr/share/ovm-ctl" -r &&
+cp ../*.py "../extra" "$activedir/usr/share/ovm-ctl" -r &&
+rm "$activedir/usr/share/ovm-ctl/"{parsedocs,gen_docs,man_writing}".py"
 mkdir -p "$activedir/usr/bin" &&
 cp "../ovm-ctl" "$activedir/usr/bin" -r &&
 mkdir -p "$activedir/usr/share/man/man1" &&

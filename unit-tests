@@ -206,6 +206,31 @@ clone_test() {
 	NAME="$_NAME"
 }
 
+
+cycle_test() {
+	checkenv DISKSIZE IMAGE MEMSIZE || return 1
+	[ $# == 1 ] || { echo cycle_test CYCLES; return 1; }
+	CYCLES=$1
+	for ((n=0;n<5;n++)); do
+		NAME="cycle-test-$n"
+		create_vm_full || return 2
+	done
+	for ((cyc=CYCLES; cyc; cyc--)); do
+		for ((n=0;n<5;n++)); do
+			NAME="cycle-test-$n"
+			boot_vm || return 3
+		done
+		for ((n=0;n<5;n++)); do
+			NAME="cycle-test-$n"
+			shutdown_vm || return 4
+		done
+	done
+	for ((n=0;n<5;n++)); do
+		NAME="cycle-test-$n"
+		destroy_vm_full || return 5
+	done
+}
+
 ## This test is meant to create a new vm and install ovm-ctl. However, having problems with ssh and passworded access.
 #deb_test() {
 #	checkenv NAME DISKSIZE IMAGE MEMSIZE PASSWORD &&

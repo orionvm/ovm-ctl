@@ -1,0 +1,12 @@
+#!/usr/bin/ovm-ctl -f
+
+# This is provided as an example script that can be read by ovm-ctl.
+# Note that the language consists only of a straight execution of statements.
+# If you require flow control or other functionality,
+# consider using your favourite shell script such as sh(1) or bash(1).
+
+show disks
+create disk unit-test1 with size 100G and image ubuntu-lucid
+show disks
+destroy disk unit-test1
+show disks
