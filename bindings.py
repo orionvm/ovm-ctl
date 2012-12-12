@@ -128,7 +128,7 @@ def get_creds(isatty, user=None, pswd=None, credfile=None):
 			if response == 'yes':
 				credfd = open(credfile_default, 'w')
 				if os.name == 'posix':
-					os.chmod(credfile_default, 0700)
+					os.chmod(credfile_default, 0600)
 				credfd.write(user+'\n')
 				while True:
 					response = raw_input("Also save your password (this may not be secure)? [yes/no] > ")
@@ -142,7 +142,7 @@ def get_creds(isatty, user=None, pswd=None, credfile=None):
 			elif response == 'never':
 				open(credfile_default, 'w') # Touch to create blank file
 				if os.name == 'posix':
-					os.chmod(credfile_default, 0700)
+					os.chmod(credfile_default, 0600)
 				break
 			elif response == 'no':
 				break
