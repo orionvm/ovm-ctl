@@ -1,5 +1,5 @@
 from show import getvmby
-from webbindings import CurlException
+from webbindings import HTTPException
 
 def addcontext(vmname, key, value, istty, api):
 	"""call: 'add context to vm VM with KEY = VALUE'
@@ -42,7 +42,7 @@ def clearcontext(key, vmname, istty, api):
 	try:
 		raise Exception("This function has not been implemented yet. Stay tuned.")
 		# api.set_context(vmid=vm['vmid'],key=key,value=None)
-	except CurlException, e:
+	except HTTPException, e:
 		if e.retcode != 404:
 			raise
 		if istty:

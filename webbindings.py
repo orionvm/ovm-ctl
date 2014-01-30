@@ -1,11 +1,12 @@
-import pycurl
-import StringIO
 import base64
 import time
 import simplejson
 import urllib
+import urllib2
 import sys
 import re
+from sslverify import ValidHTTPSHandler
+
 from version import VERSION
 
 # This file contains the web api object itself, without all the fancy wrapping.
@@ -19,66 +20,69 @@ from version import VERSION
 # IMPORTANT: Our actual API is not finalised yet,
 # so if you use these be aware they may completely change some day with no warning.
 
-class CurlException(Exception):
+class HTTPException(Exception):
 	def __init__(self, message, retcode, response=None):
 		Exception.__init__(self, message)
 		self.retcode = retcode
 		self.response = response
 
+   
+class MethodAndCredsRequest(urllib2.Request):
+	def __init__(self, method, user, pswd, *args, **kwargs):
+		self._method = method
+		if 'headers' not in kwargs: kwargs['headers'] = {}
+		kwargs['headers']['User-Agent'] = "OrionVM CLI bindings version %s" % VERSION
+		if user and pswd:
+			basicheader = "Basic " + base64.b64encode(user + ":" + pswd)
+			kwargs['headers']['Authorization'] = basicheader
+		urllib2.Request.__init__(self, *args, **kwargs)
+
+	def get_method(self):
+		return self._method if self._method else super(RequestWithMethod, self).get_method()
+
+
 def push(url, post_data, user, pswd, verbose=False, type='GET', con=None, retcon=False):
+	opener = con
+	
 	if verbose:
 		print url, post_data
 
-	con=con or pycurl.Curl()
+	data = None
 
-	string_s = StringIO.StringIO()
-	header_s = StringIO.StringIO()
+	#string_s = StringIO.StringIO()
+	#header_s = StringIO.StringIO()
+
 	if post_data and type=='POST':
-		con.setopt(pycurl.POST, 1)
-		con.setopt(pycurl.POSTFIELDS, urllib.urlencode(post_data))
+		data = urllib.urlencode(post_data)
 	else:
-		con.setopt(pycurl.POST, 0)
 		if post_data:
 			url += '?' + '&'.join(['%s=%s' % (k,v) for k,v in post_data.items()])
+		
+	if not opener:		
+		opener = urllib2.OpenerDirector()
+		opener.add_handler(ValidHTTPSHandler())
+		opener.add_handler(urllib2.HTTPDefaultErrorHandler())
 
-	if verbose:
-		con.setopt(pycurl.VERBOSE, 1)
 
-	basicheader = base64.b64encode(user + ":" + pswd)
-	con.setopt(pycurl.HTTPHEADER, ['Authorization: Basic %s' % basicheader])
-	con.setopt(pycurl.USERAGENT, "OrionVM CLI bindings version %s" % VERSION)
-	con.setopt(pycurl.FOLLOWLOCATION, False)
-	con.setopt(pycurl.SSL_VERIFYPEER, 1)
-	con.setopt(pycurl.SSL_VERIFYHOST, 2)
-	con.setopt(pycurl.SSLVERSION, 3)
-	con.setopt(pycurl.WRITEFUNCTION, string_s.write)
-	con.setopt(pycurl.HEADERFUNCTION, header_s.write)
-	con.setopt(pycurl.URL, url)
-
-	con.perform()
-	page = string_s.getvalue()
-	retcode = con.getinfo(pycurl.HTTP_CODE)
-	if retcode != 200:
-		raise CurlException("API error %s" % retcode, retcode, response=page)
-
-	header = header_s.getvalue()
-	header = dict([[x.strip() for x in line.split(':',1)] for line in header.split('\n') if ':' in line])
-
-	if 'Server' not in header:
-		raise Exception("Bad http header - No server information")
-	s_version = re.match(".* v([0-9]+).([0-9]+)(?:.([0-9]+))?", header['Server'])
-	if s_version:
-		major, minor, patch = [int(x and x or 0) for x in s_version.groups()]
-		Major, Minor, Patch = [int(x) for x in VERSION.split('.', 2)]
-		if Major != major:
-			raise Exception("API and ovm-ctl versions do not match. Please update ovm-ctl or contact OrionVM")
+	req = MethodAndCredsRequest(type, user, pswd, url, data)
+	try:
+		response = opener.open(req)
+	except urllib2.URLError, e:
+		if not hasattr(e, 'code'):
+			raise
+		retcode = e.code
+		page = e.read()
 	else:
-		raise Exception("Bad http header - bad server information")
-    
+		retcode = 200
+		page = response.read()
+	
+	if retcode != 200:
+		raise HTTPException("API error %s" % retcode, retcode, response=page)
+
 	if not retcon:
 		return page
 
-	return page, con 
+	return page, opener
 
 def extra(isatty, api):
 	if not isatty:
@@ -114,7 +118,6 @@ class apibindings(object):
 		self.pswd = pswd
 
 		base = "https://panel.orionvm.com.au/api/"
-#		base = "http://landing.vm.dev.vdc.syd.au.ovs/api/" # FOR DEV
 		# list of (api url, binding name, method)
 		calls = [(r'vm_pool', 'vm_pool', self.GET),
 			(r'ip_pool', 'ip_pool', self.GET),
@@ -157,7 +160,7 @@ def protectAPI(call, istty, *args, **kwargs):
 	***DEPRECATED*** in favour of more general error handling higher up in the call stack."""
 	try:
 		return call(*args, **kwargs)
-	except CurlException, e:
+	except HTTPException, e:
 		if istty:
 			print 'Error while calling API function %s: Returned code %d' % (call.__name__, e.retcode)
 			if e.response:

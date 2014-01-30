@@ -1,5 +1,38 @@
 import re
-from webbindings import CurlException
+from webbindings import HTTPException
+
+# Function to nicely format output into table columns if istty, otherwise tab separated
+def printData(header, rows, istty):
+    if header == None or not istty:
+        allrows = rows
+        if len(rows) == 0:
+            return
+    else:
+        allrows = [header]
+        allrows.extend(rows)
+    
+    width = len(allrows[0])
+    
+    if istty:
+        # Find maximum width for each column among all rows
+        padding = [0] * width
+        for row in allrows:
+            for x in range(len(row)):
+            	if not isinstance(row[x], str):
+            		row[x] = str(row[x])
+                length = len(row[x])
+                if length > padding[x]:
+                    padding[x] = length
+    
+    # Tab separated for programmatic uses, nicely spaced for ttys
+    for row in allrows:
+        if istty:
+            line = ""
+            for x in range(width):
+                line += row[x].ljust(padding[x] + 3)
+            print line
+        else:
+            print "\t".join(map(str, row))
 
 def showuse(istty, api): 
 	r"""call: 'show usage'
@@ -39,10 +72,10 @@ def showips(istty, api):
 		. ..."               etc...(one per line)'
 	"""
 	ips = api.ip_pool()
-	if istty:
-		print "IP Address\tFriendly Name"
-        for ip in ips:
-		print "%(ip)s\t%(friendly)s" % ip
+	header = ['IP Address', 'Friendly Name']
+	data = [[ip['ip'], ip['friendly']] for ip in ips]
+	printData(header, data, istty)
+
 
 def getvmby(value, api, what='vm_id'):
 	"""Return the vm dict of the vm described in the arguments.
@@ -78,7 +111,7 @@ def showip(matchip, istty, api):
 				data = {'ip': ip['ip'], 'friendly': ip['friendly'], 'up': up, 'down': down, 'vmname': vmname}
 
 				if istty:
-					print "%(ip)s aka %(friendly)s %(up).2fGup/%(down).2fGdown locked by %(vmname)s." % data
+					print "%(ip)s aka %(friendly)s %(up).2fG up/%(down).2fG down locked by %(vmname)s." % data
 				else:
 					print "%(ip)s\t%(friendly)s\t%(up)d\t%(down)d\t%(vmname)s" % data
 			else:
@@ -103,13 +136,15 @@ def showdisks(istty, api):
 		. ..."                   etc...(one per line)'
 	"""
 	disks = api.disk_pool()
-	if istty:
-		print '\t'.join(("Name", "Image", "Size"))
-
 	for disk in disks:
 		if 'image' not in disk or not disk['image']:
 			disk['image'] = '[blank]'
-		print '\t'.join((disk['name'], disk['image'], str(disk['size']) + (istty and "G" or "")))
+		disk['size'] = str(disk['size']) + ("G" if istty else "")
+
+	header = ['Name', 'Image', 'Size']
+	data = [  [ d['name'], d['image'], d['size'] ] for d in disks]
+	printData(header, data, istty)
+
 	return 0
 
 def showdisk(diskname, istty, api):
@@ -128,7 +163,7 @@ def showdisk(diskname, istty, api):
 			if 'image' not in disk or not disk['image']:
 				disk['image'] = '[blank]'
 			if istty:
-				s = "%(name)s is of image %(image)s and size %(size)dG disk and %(islocked)s locked" % \
+				s = "%(name)s is of image %(image)s and size %(size)dG and %(islocked)s locked" % \
 				{'name': disk['name'], 'image': disk['image'], 'size': disk['size'], 'islocked': ['is not', 'is'][disk['locked']]}
 				if 'licence' in disk and disk['licence']:
 					s += ' with licence %s' % disk['licence']
@@ -153,15 +188,22 @@ def showvms(istty, api):
 	"""
 	vms = api.vm_pool()
 	vmstates = {0: 'Shut down', 1: 'Booting', 2: 'Running', 3: 'Shutting down'}
-	if istty:
-		print "Name\tType\tMemory\tDisks\tIPs\tState"
+
 	for vm in vms:
 		if istty:
 			if vm['ram'] >= 2048:
 				vm['ram'] = "%.2fG" % (vm['ram'] / 1024.0)
 			else:
 				vm['ram'] = "%dM" % vm['ram']
-		print '\t'.join([vm['hostname'], vm['vm_type'], str(vm['ram']), str(len(vm['disks'])), str(len(vm['ips'])), vmstates.get(vm['state'], 'Erroring')])
+		vm['state'] = vmstates.get(vm['state'], 'Erroring')
+
+	
+	header = ['Name', 'Type', 'Memory', 'Disks', 'IPs', 'State']
+	data = [  [vm['hostname'], vm['vm_type'], vm['ram'], 
+			  len(vm['disks']), len(vm['ips']), vm['state'] ] for vm in vms]
+	
+	printData(header, data, istty)
+	
 	return 0
 
 def showvm(vmhost, istty, api):
@@ -260,7 +302,7 @@ def showcontext(key, vmname, istty, api):
 
 	try:
 		value = api.get_context(vmid=vm['vm_id'],key=key)
-	except CurlException, e:
+	except HTTPException, e:
 		if e.retcode != 404:
 			raise
 		if istty:

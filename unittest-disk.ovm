@@ -6,7 +6,7 @@
 # consider using your favourite shell script such as sh(1) or bash(1).
 
 show disks
-create disk unit-test1 with size 100G and image ubuntu-lucid
+create disk unit-test1 with size 20G and image ubuntu-lucid
 show disks
 destroy disk unit-test1
 show disks

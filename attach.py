@@ -1,6 +1,6 @@
 from show import getvmby
 import re
-from webbindings import CurlException
+from webbindings import HTTPException
 
 def attachdisk(diskname, vmname, target, istty, api):
 	r"""call: 'attach disk DISK to VM with target TARGET'

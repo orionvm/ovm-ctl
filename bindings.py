@@ -2,7 +2,7 @@ DEBUG=False # Change this to true to have --debug by default. Useful if code is 
 
 import sys
 import re
-from webbindings import apibindings, extra_r, CurlException
+from webbindings import apibindings, extra_r, HTTPException
 import routes
 import os
 import getpass
@@ -99,36 +99,40 @@ def repl(api, istty):
 		if not istty and ret:
 			return ret
 
-def get_creds(isatty, user=None, pswd=None, credfile=None):
-	credfile_default = os.path.expanduser("~/.orionauth")
-
+def get_creds(isatty, credfile, user=None, pswd=None):
+	from_file = False
+	user_from_file = False
+	pswd_from_file = False
 	asksave = False
 	if not user:
-		if credfile or os.path.exists(credfile_default):
-			creds = open(credfile or credfile_default, 'rU').read()
+		if os.path.exists(credfile):
+			creds = open(credfile, 'rU').read()
 			creds = creds.split("\n")
 			if len(creds) > 0 and creds[0] != '':
 				user = creds[0]
+				user_from_file = user != ''
 			if len(creds) > 1 and creds[1] != '':
 				pswd = creds[1]
-		elif not credfile:
-			# No credfile, but default credfile doesn't exist
-			asksave = isatty
+				pswd_from_file = pswd != ''
+			from_file = user_from_file and pswd_from_file
 
 	if not user:
 		user = raw_input("Username: ")
+		asksave = True
 
 	if not pswd:
+		if isatty and user_from_file:
+			print "Username: %s" % user
 		pswd = getpass.getpass("Password: ")
 
 	# Only ask to save if default credfile doesn't exist, no other credfile given, user is not blank.
-	if user and asksave:
+	if user and isatty and asksave:
 		while True:
 			response = raw_input("Would you like to save your username as the default? [yes/no/never] > ")
 			if response == 'yes':
-				credfd = open(credfile_default, 'w')
+				credfd = open(credfile, 'w')
 				if os.name == 'posix':
-					os.chmod(credfile_default, 0600)
+					os.chmod(credfile, 0600)
 				credfd.write(user+'\n')
 				while True:
 					response = raw_input("Also save your password (this may not be secure)? [yes/no] > ")
@@ -140,32 +144,42 @@ def get_creds(isatty, user=None, pswd=None, credfile=None):
 					break
 				break
 			elif response == 'never':
-				open(credfile_default, 'w') # Touch to create blank file
+				open(credfile, 'w') # Touch to create blank file
 				if os.name == 'posix':
-					os.chmod(credfile_default, 0600)
+					os.chmod(credfile, 0600)
 				break
 			elif response == 'no':
 				break
 
-	return (user, pswd)
+	return (user, pswd, from_file)
 
 def creds(isatty, user=None, pswd=None, credfile=None):
+	if credfile == None:
+		credfile = os.path.expanduser("~/.orionauth")
+	
 	while 1:
-		user, pswd = get_creds(isatty, user=user, pswd=pswd, credfile=credfile)
+		user, pswd, from_file = get_creds(isatty, credfile, user=user, pswd=pswd)
 		api = apibindings(user, pswd)
 		try:
 			api.details()
 			return (user, pswd)
-			
-		except CurlException, e:
+		
+		except HTTPException, e:
 			if e.retcode == 401:
 				if not isatty:
 					raise
 
-				print "Invalid username and/or password"
 				user = None
-				pswd = None
-				credfile = None
+				pswd = None	
+
+				if from_file:
+					try:
+						os.remove(credfile)
+					except OSError:
+						raise Exception("Invalid userame and/or password in auth file %s" % credfile)
+				else:
+					print "Invalid username and/or password"
+			
 			else:
 				raise
 
@@ -235,9 +249,11 @@ def main(args, istty):
 			DEBUG = True
 		elif match_opt(opt, 'file'):
 			try:
+				if value.startswith("./"):
+					value = value[2:]
 				read_from_file = open(value, 'rU')
 			except IOError:
-				print 'Could not open file "%s" for reading.'
+				print 'Could not open file "%s" for reading.' % value
 				raise
 			istty = False
 		else:
@@ -265,7 +281,7 @@ if __name__ == "__main__":
 		raise
 	except BaseException, ex:
 		if DEBUG:
-			if isinstance(ex, CurlException):
+			if isinstance(ex, HTTPException):
 				print 'DEBUG: Recieved response from web server:'
 				print ex.response
 			raise

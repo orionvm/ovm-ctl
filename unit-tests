@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Unit tests for ovm-ctl
-# Usage: source this file, then run whatever tests you desire. "console_vm" will test most features.
+# Usage: source this file, then run whatever tests you desire. "console_test" will test most features.
 # You will need to set NAME, DISKSIZE, MEMSIZE, IMAGE, and optionally OVMUSER or AUTHFILE.
 
 OVMCTL=`which ovm-ctl`
@@ -110,14 +110,14 @@ detach_ip() {
 boot_vm() {
 	checkenv NAME || return 1
 	ovm-ctl boot vm $NAME || return 1
-	state=`ovm-ctl -q show vm $NAME | head -n1 | cut -f3`
+	state=`ovm-ctl -q show vm $NAME | head -n1 | cut -f4`
 	[ "$state" == "Running" ] || return 1
 }
 
 shutdown_vm() {
 	checkenv NAME || return 1
 	ovm-ctl shutdown vm $NAME || return 1
-	state=`ovm-ctl -q show vm $NAME | head -n1 | cut -f3`
+	state=`ovm-ctl -q show vm $NAME | head -n1 | cut -f4`
 	[ "$state" == "Shut down" ] || return 1
 }
 
@@ -172,6 +172,15 @@ destroy_vm_full() {
 vm_test() {
 	checkenv NAME DISKSIZE IMAGE MEMSIZE &&
 	create_vm_full && destroy_vm_full
+}
+
+vm_create_boot_test() {
+	checkenv NAME DISKSIZE IMAGE MEMSIZE &&
+	create_vm_full &&
+	boot_vm &&
+	shutdown_vm &&
+	destroy_vm_full &&
+	echo "Test Successful"
 }
 
 # Checks all attach, detach, destroy, boot, shutdown, console. Checks all create except clone.

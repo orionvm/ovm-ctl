@@ -4,9 +4,7 @@ ovm-ctl  -  OrionVM Command Line API Bindings
 
 To run, you will require the following:
 	python
-	python-pycurl
 	python-simplejson
-	ssh-client
 
 To install from the ready-to-install tarball:
 	Copy the usr directory into your root directory:
