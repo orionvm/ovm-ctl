@@ -62,7 +62,7 @@ def push(url, post_data, user, pswd, verbose=False, type='GET', con=None, retcon
 		opener = urllib2.OpenerDirector()
 		opener.add_handler(ValidHTTPSHandler())
 		opener.add_handler(urllib2.HTTPDefaultErrorHandler())
-
+		opener.add_handler(urllib2.HTTPErrorProcessor())
 
 	req = MethodAndCredsRequest(type, user, pswd, url, data)
 	try:
