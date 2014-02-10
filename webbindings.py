@@ -1,10 +1,15 @@
 import base64
 import time
-import simplejson
 import urllib
 import urllib2
 import sys
 import re
+
+try:
+    import simplejson as json
+except ImportError:
+    import json
+
 from sslverify import ValidHTTPSHandler
 
 from version import VERSION
@@ -150,7 +155,7 @@ class apibindings(object):
 	def _docall(self, url, type):
 		def fun(**kwargs):
 			ret, self.con = push(url, kwargs, self.user, self.pswd, verbose=False, type=type, con=self.con, retcon=True)
-			return simplejson.loads(ret)
+			return json.loads(ret)
 
 		return fun
 
