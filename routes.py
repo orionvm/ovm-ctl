@@ -9,6 +9,7 @@ import destroy
 import context
 import wizard
 import password
+import setram
 import sys
 
 # This file contains the regex patterns that define our commands.
@@ -71,7 +72,8 @@ def quit(*args):
     sys.exit(0)
 
 miscroutes = [('#', r'^(?:[ \t]*#.*)?$', comment),\
-              ('quit', r'quit', quit)]
+              ('quit', r'quit', quit),
+              ('set ram', r'set ram on vm ([^ ]+) to ([^ ]+)$', setram.setram)]
 
 routes = sum([
 	wizardroutes,

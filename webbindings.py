@@ -144,7 +144,8 @@ class apibindings(object):
 			(r'drop_vm', 'dropvm', self.POST),
 			(r'usage', 'usage', self.GET),
 			(r'context', 'get_context', self.GET),
-			(r'context', 'set_context', self.POST)]
+			(r'context', 'set_context', self.POST),
+			(r'set_ram', 'set_ram', self.POST)]
 
 		self.con = None
 		for url, nme, type in calls:
