@@ -1,0 +1,770 @@
+.TH ovm-ctl 1 2014-05-01 OrionVM "OrionVM User Documentation"
+.SH NAME
+ovm-ctl \- command line interface to OrionVM Online API
+.SH SYNOPSIS
+.SY ovm-ctl
+.OP -vq
+.OP (-a|--authfile) filename
+.OP --verbose
+.OP --quiet
+.OP (-u|--user|--username|--auth) user\fR[\fB:\fIpass\fR]\fI
+.OP (-f|--file) filename
+.OP --debug
+.RI [ command ]
+.YS
+.SH DESCRIPTION
+This is a program designed to be a command line interface to the OrionVM Online API calls.
+It allows you to use simple commands to interact with and control your OrionVM account and resources.
+A single command can be specified on the command line, or you can run it without commands to start
+an interactive shell where commands can be typed.
+.P
+The program has two output modes: verbose and quiet.
+In verbose mode, human readable output is given.
+In contrast, quiet mode is designed for scripts and the like.
+Most commands will not produce output in quiet mode.
+Errors must be detected by examining the program's exit code.
+Commands that return information, such as the
+.B "show"
+family of commands, return a simple, machine-readable format.
+See
+.I "COMMANDS"
+below for details.
+.P
+By default (but see
+.I "OPTIONS"
+below) the program is in verbose mode.
+However, if input or output is not a terminal (for example, it is a file or a pipeline), quiet mode is used.
+.P
+For help with commands, see section
+.I "COMMANDS"
+below.
+.SS Authentication
+When the program is started (in verbose or quiet mode), the user is prompted for their
+OrionVM login email and password. This step can be avoided by either giving a username on the command line (see
+.IR "OPTIONS" ")"
+or by writing an authfile.
+The first time you give your credentials, the program will ask if you want to save them.
+This will write an authfile for you in the default authfile location
+.RI "(" "~/.orionauth" ")."
+The following is details on writing an authfile yourself.
+.P
+An authfile is a plain text file containing one or two lines.
+The first line is your OrionVM login email.
+The second is your password.
+If there is no second line or it is blank, your password will still be prompted for when the program is run.
+Please consider the security risks of keeping your password stored in plaintext in a file on your system.
+.P
+The program by default searches for a file called
+.I ".orionauth"
+in your home directory - you should place your authfile here
+to have it be used automatically.
+.SS Errors in interactive mode
+When reading commands from input (ie. no command was supplied as an argument),
+the effects of an error occurring depend on whether the program is running in verbose mode.
+In verbose mode, the error is reported and execution continues.
+In quiet mode, execution is aborted and the program exits with the exit status of the command that failed.
+.SH OPTIONS
+.TP
+\fB-a \fIfilename\fR, \fB--authfile \fIfilename\fR
+Use the given file as the authfile (see Authentication) instead of the default.
+.TP
+\fB-v\fR, \fB--verbose\fR
+Force verbose mode even when stdin or stdout is not a tty.
+Causes the program to generate human-readable outputs.
+.TP
+\fB-q\fR, \fB--quiet\fR
+Force quiet mode even when stdin and stdout are a tty.
+Causes the program to generate little or no output.
+.TP
+\fB-u \fIuser\fR[\fB:\fIpass\fR]\fI\fR, \fB--user \fIuser\fR[\fB:\fIpass\fR]\fI\fR, \fB--username \fIuser\fR[\fB:\fIpass\fR]\fI\fR, \fB--auth \fIuser\fR[\fB:\fIpass\fR]\fI\fR
+If given, specifies an OrionVM account to log in as.
+Optionally, the password can also be given, seperated from the username by a colon.
+This option overrides anything read from an authfile.
+.TP
+\fB-f \fIfilename\fR, \fB--file \fIfilename\fR
+Read a list of commands from a file, instead of stdin.
+Implies -q unless overriden with -v.
+Note that options are processed in the order they are given and any later option overrides an earlier one.
+.TP
+\fB--debug\fR
+Report the underlying exceptions in the python code.
+This option is intended only for debugging a problem after editing the code.
+.SH COMMANDS
+Note: For commands that produce output in quiet mode, their entries contain formatting strings. These formatting strings describe the output as per the rules used by
+.BR "printf" "(3)"
+.TP
+\fBwizard \fBvm \fINAME \fB[with \fB[ram \fIMEMSIZE] \fB[disk \fIDISKSIZE] \fB[image \fIIMAGE]] \fB[and \fBboot]\fR
+This command is a wizard to create a ready-to-run server with the given NAME.
+Any arguments not provided will be prompted.
+If the command has "and boot" on the end,
+the machine will be booted immediately after creation.
+Further details:
+Create a new VM and call it NAME.
+Create a disk and ip (of the same NAME) and attach them.
+The disk will have size DISKSIZE and image IMAGE.
+The VM will have ram MEMSIZE.
+If "and boot" is given, the VM is then booted.
+If "and boot" is not given, it is only prompted if no other arguments are provided.
+.RS
+.TP
+.I "NAME"
+.
+The name to give to the VM, disk and ip address to be created.
+.
+.TP
+.I "MEMSIZE"
+.
+The amount of RAM to give the VM.
+Format is a number followed by M for megabytes or G for gigabytes.
+.
+.TP
+.I "DISKSIZE"
+.
+The size of the new disk.
+See the SIZE argument for "create disk".
+.
+.TP
+.B "Output format string for quiet mode:"
+.
+If creating a windows vm, prints the inital password
+.RE
+.TP
+\fBshow \fBips\fR
+Print a list of IP addresses and their friendly names.
+.RS
+.TP
+.B "Output format string for quiet mode:"
+.
+"%s\\t%s\\n    ==>    IP Address, Friendly Name,
+ %s\\t%s\\n           IP Address, Friendly Name,
+ ..."               etc...(one per line)
+.RE
+.TP
+\fBshow \fBip \fIIP\fR
+Get information on a specific IP address, including up/down data totals, and (if in use) the vm using it.
+.RS
+.TP
+.I "IP"
+.
+The IP address or friendly name to get information on.
+.
+.TP
+.B "Output format string for quiet mode:"
+.
+"%s\\t%s\\t%d\\t%d\\t%s\\n" ==> IP Address, Friendly name,
+                           Total Uploaded (bytes), Total Downloaded (bytes),
+                           VM Name of VM using this IP (ommitted if not in use)
+.TP
+.B "Error cases with special return values:"
+.
+ For non-existing IP address or friendly name: Returns exit code 3
+.RE
+.TP
+\fBshow \fBvms\fR
+Print list of all vms, both running and shutdown.
+.RS
+.TP
+.B "Output format string for quiet mode:"
+.
+"%s\\t%s\\t%d\\t%d\\t%d\\t%s\\n    ==>    VM Name, VM Type, Memory (in MB), Number of disks, Number of ips, VM State
+ %s\\t%s\\t%d\\t%d\\t%d\\t%s\\n           VM Name, VM Type, Memory (in MB), Number of disks, Number of ips, VM State
+ ..."                               etc...(one per line)
+.RE
+.TP
+\fBshow \fBvm \fINAME\fR
+Get information on a specific VM, including running state, attached disks and attached ips.
+.RS
+.TP
+.I "NAME"
+.
+The name of the VM to get information on.
+.
+.TP
+.B "Output format string for quiet mode:"
+.
+"%s\\t%s\\t%d\\t%s\\n    ==>    VM Name, Type, Memory (in MB), State
+ disk\\t%s\\t%s\\t%s\\n         Disk Name, Template, Device Name on VM
+ disk\\t%s\\t%s\\t%s\\n         Disk Name, Template, Device Name on VM
+ ...                        etc (one disk per line)
+ ip\\t%s\\n                   IP Address
+ ip\\t%s\\n                   IP Address
+ ..."                       etc (one ip per line)
+.TP
+.B "Error cases with special return values:"
+.
+ For non-existing VM Name: Return exit code 3
+.RE
+.TP
+\fBshow \fBdisks\fR
+Print list of disks, their template image and their size.
+.RS
+.TP
+.B "Output format string for quiet mode:"
+.
+"%s\\t%s\\t%d\\n    ==>    Disk Name, Image Name, Size (in GB)
+ %s\\t%s\\t%d\\n           Disk Name, Image Name, Size (in GB)
+ ..."                   etc...(one per line)
+.RE
+.TP
+\fBshow \fBdisk \fINAME\fR
+Get information on a specific disk, including image name, size and whether the disk is locked (normally, attached to a vm)
+.RS
+.TP
+.I "NAME"
+.
+The name of the disk to get information on.
+.
+.TP
+.B "Output format string for quiet mode:"
+.
+"%s\\t%s\\t%d\\t%s\\t%s\\n" ==> Disk Name, Image Name, Size (in GB),
+                           "locked" if disk is locked, else "unlocked",
+                           licence if disk a licenced windows disk, else omitted
+.TP
+.B "Error cases with special return values:"
+.
+ Disk does not exist: Returns exit code 3
+.RE
+.TP
+\fBshow \fBusage\fR
+Report amount of RAM and HDD Storage being used, and the number of IP addresses currently allocated.
+.RS
+.TP
+.B "Output format string for quiet mode:"
+.
+"%d\\t%d\\t%d\\n" ==> RAM in Megabytes, Storage in Gigabytes, Number of IPs
+.RE
+.TP
+\fBshow \fBbalance\fR
+Report account balance, current to the last hour.
+.RS
+.TP
+.B "Output format string for quiet mode:"
+.
+"%.2f\\n" ==> Balance in dollars (to the cent)
+.RE
+.TP
+\fBshow \fBimages\fR
+Get a list of available software distributions for creating new instances.
+Please note that the "blank" value is special, and is used to create a completely empty disk.
+.RS
+.TP
+.B "Output format string for quiet mode:"
+.
+"%s\\n    ==>    Image
+ %s\\n           Image
+ ..."           etc (one per line)
+.RE
+.TP
+\fBshow \fBcontext \fBkey \fIKEY \fBon \fBvm \fIVM\fR
+Retrieve the value for the given key from the key-value context information associated with the given vm.
+.RS
+.TP
+.I "KEY"
+.
+The context key to look up in the vm context store
+.
+.TP
+.I "VM"
+.
+The name of the vm to look up context information on
+.
+.TP
+.B "Output format string for quiet mode:"
+.
+"%s\\n"    ==>    Value
+.TP
+.B "Error cases with special return values:"
+.
+ If the given vm does not exist, exit code 3 is returned.
+ If the given vm context store does not contain the given key, exit code 4 is returned.
+.RE
+.TP
+\fBcreate \fBdisk \fINAME \fBwith \fBsize \fISIZE \fB[and \fBimage \fIIMAGE]\fR
+Create a new storage volume and load it with the given software distribution.
+.RS
+.TP
+.I "NAME"
+.
+The name to give to the new disk.
+.
+.TP
+.I "SIZE"
+.
+The size of the new disk.
+Can be given in MB, GB or TB.
+For example: "200G", "20g", "1.5T", "2048m".
+Value is rounded down to nearest GB.
+.
+.TP
+.I "IMAGE"
+.
+The software distribution to put onto the new disk.
+For a list of valid image names,
+see the "show images" command.
+If not provided, creates a blank disk.
+.
+.TP
+.B "Error cases with special return values:"
+.
+ If the given image is not valid, exit code 3 is returned.
+ If the size is not valid, exit code 4 is returned.
+ If there already exists a disk with name NAME, exit code 5 is returned.
+ If an error occurs before creation is complete, exit code 6 is returned.
+     NOTE: The creation continues in the background, you must "show disks" to check
+     when it is done.
+.RE
+.TP
+\fBcreate \fBip \fBwith \fBfriendly \fINAME\fR
+Allocate a new IP address and call it NAME.
+.RS
+.TP
+.I "NAME"
+.
+The friendly name to assign to the new address.
+.
+.RE
+.TP
+\fBcreate \fBvm \fINAME \fBwith \fBram \fISIZE \fB[of \fBtype \fITYPE]\fR
+Create a new VM and call it NAME.
+Give it SIZE amount of memory.
+Optionally, a VM Type can be provided.
+This is for advanced use only.
+.RS
+.TP
+.I "NAME"
+.
+The name to give to the new VM.
+.
+.TP
+.I "SIZE"
+.
+Amount of RAM to allocate to the new VM.
+Format is a number followed by M for megabytes or G for gigabytes.
+.
+.TP
+.I "TYPE"
+.
+Either "paravirt" or "HVM".
+Note that not all distros support all types.
+"HVM" should be used when creating Microsoft Windows VMs.
+"paravirt" should
+otherwise be used and is the default if this argument is not given.
+.
+.TP
+.B "Error cases with special return values:"
+.
+ Incorrect format for SIZE: Return exit code 3
+ Invalid VM Type: Return exit code 4
+.RE
+.TP
+\fBclone \fBdisk \fINAME \fBfrom \fISOURCE \fB[with \fBsize \fISIZE]\fR
+Create a new disk called NAME, with contents copied from the disk called SOURCE.
+.RS
+.TP
+.I "NAME"
+.
+The name of the new disk.
+.
+.TP
+.I "SOURCE"
+.
+The name of the disk to copy from.
+Must not be locked.
+.
+.TP
+.I "SIZE"
+.
+The size of the new disk (see the same arg for command "create disk").
+Must be at least the size of the source disk.
+If not provided, defaults to the size of the source disk.
+.
+.TP
+.B "Error cases with special return values:"
+.
+ If the given source disk does not exist or is busy, exit code 3 is returned.
+ If the size is too small or otherwise not valid, exit code 4 is returned.
+ If there already exists a disk with name NAME, exit code 5 is returned.
+ If an error occurs before creation is complete, exit code 6 is returned.
+     NOTE: The creation continues in the background, you must "show disks" to check
+     when it is done.
+.RE
+.TP
+\fBattach \fBdisk \fIDISK \fBto \fIVM \fBwith \fBtarget \fITARGET\fR
+Attach a given disk to a given VM, locking the disk
+and making it appear as a device on the VM.
+.RS
+.TP
+.I "DISK"
+.
+The name of the disk to attach.
+.
+.TP
+.I "VM"
+.
+The name of the VM to attach to.
+.
+.TP
+.I "TARGET"
+.
+The name of the device (the device will appear as /dev/TARGET).
+For a linux vm:
+Must be of form: "xvd%s%d" ==> ((a, b, c, ..., aa, ab, etc), positive integer),
+eg: "xvda1", "xvda2", "xvdb1", "xvdb25".
+Note: "xvdz" is reserved.
+Valid range is "xvda"-"xvdy", then "xvdaa", etc.
+For a windows vm:
+Must be of form: "hd%s" ==> (a, b, c, ..., aa, ab, ...)
+eg.
+"hda", "hdb", "hdog", "hdzzz"
+.
+.TP
+.B "Error cases with special return values:"
+.
+ For non-existing or invalid (eg. running) VM: Returns exit code 3
+ For non-existing or invalid Disk: Returns exit code 4
+ For invalid target: Returns exit code 5
+.RE
+.TP
+\fBattach \fBip \fIIP \fBto \fBvm \fIVM\fR
+Attach a given IP to a given VM,
+creating an ethernet interface on the VM.
+.RS
+.TP
+.I "IP"
+.
+The IP Address or Friendly Name of the IP to attach.
+.
+.TP
+.I "VM"
+.
+The name of the VM to attach it to.
+.
+.TP
+.B "Error cases with special return values:"
+.
+ For non-existing or invalid VM: Return exit code 3
+ For non-existing or invalid IP: Return exit code 4
+.RE
+.TP
+\fBdetach \fBdisk \fIDISK \fBfrom \fIVM\fR
+Detach the given disk from the instance its attached to, removing it from that system but freeing it to be destroyed or attached elsewhere.
+.RS
+.TP
+.I "DISK"
+.
+Name of the disk to detach.
+.
+.TP
+.I "VM"
+.
+Name of the instance that the disk is currently attached to.
+.
+.TP
+.B "Error cases with special return values:"
+.
+ VM does not exist or is not shut down: Returns exit code 3
+ Disk not attached to VM, or disk does not exist: Returns exit code 4
+.RE
+.TP
+\fBdetach \fBip \fIIP \fBfrom \fIVM\fR
+Detach the given IP from the instance its attached to, allowing it to be freed or attached to a different instance instead.
+.RS
+.TP
+.I "IP"
+.
+The IP address or friendly name you want to detach.
+.
+.TP
+.I "VM"
+.
+The name of the instance that the ip is currently attached to.
+.
+.TP
+.B "Error cases with special return values:"
+.
+ VM does not exist: Returns exit code 3
+ Invalid IP or no matching friendly IP name found: Returns exit code 4
+.RE
+.TP
+\fBboot \fBvm \fIVM\fR
+Begin running the given instance.
+.RS
+.TP
+.I "VM"
+.
+Name of the instance to boot up.
+.
+.TP
+.B "Error cases with special return values:"
+.
+ If VM name is invalid or VM does not exist: Returns exit code 3
+ If VM is not ready to be booted (eg. is already running): Returns exit code 4
+ If VM fails to correctly boot (booting is aborted): Returns exit code 5
+ If an error occurs while booting: Returns exit code 6
+     NOTE: In this case, the VM may still boot correctly.
+     Try "show vm" to check if the VM is now running or still booting.
+.RE
+.TP
+\fBshutdown \fBvm \fIVM\fR
+Stop running the given instance.
+While an instance is not running, no RAM usage charges are incurred.
+Note: Do not attempt to shut down your instance using the standard shut down feature of its operating system.
+Your instance will be restarted immediately and usage charges will continue.
+.RS
+.TP
+.I "VM"
+.
+Name of the instance to stop running.
+.
+.TP
+.B "Error cases with special return values:"
+.
+ VM name is invalid or VM does not exist: Return exit code 3
+ VM not in a state to be shut down (eg. not running): Return exit code 4
+ An error occurred while waiting for VM to shut down: Return exit code 5
+     Note: In this case, the VM may have not shut down correctly.
+     You should check with "show vm" and the out-of-band console ("console")
+     If the VM remains uncontactable and is still running after several minutes,
+     please contact OrionVM technical support.
+ VM failed to shut down: Return exit code 6
+     This is a serious error. Plesae contact OrionVM technical support
+     and we will resolve the issue.
+.RE
+.TP
+\fBconsole \fIVM\fR
+Log into the out-of-band management console on the given instance.
+This is roughly equivilent to directly connecting to the serial port on the machine.
+This command requires the programs "grep" and "ssh" be installed
+and accessible in a folder listed in the PATH environment variable.
+See NOTES section of the man page for extra notes.
+.RS
+.TP
+.I "VM"
+.
+The instance to connect to.
+.
+.TP
+.B "Error cases with special return values:"
+.
+ VM does not exist: Return exit code 3
+ Fail to run ssh: Return exit code 4
+ ssh exits with non-zero code (generic error): Return exit code 5
+ ssh exits with code 255 (connection or protocol error): Return exit code 6
+.RE
+.TP
+\fBdestroy \fBip \fIIP\fR
+Unallocate the given IP, which must not be locked (in use by a VM).
+Once an IP has been unallocated, there is no guarentee
+you can get the same one back again.
+Note that unlocked IPs still incur a charge until they have been destroyed.
+.RS
+.TP
+.I "IP"
+.
+The IP address or friendly name to unallocate.
+.
+.TP
+.B "Error cases with special return values:"
+.
+ IP is invalid, or no matching friendly name found: Returns exit code 3
+.RE
+.TP
+\fBdestroy \fBdisk \fIDISK\fR
+Destroys the given disk that is not locked (attached to a VM).
+All data on the disk is lost.
+OrionVM is not responsible for any data lost this way.
+Please be very careful when dealing with unlocked disks.
+.RS
+.TP
+.I "DISK"
+.
+Name of the disk to destroy.
+.
+.TP
+.B "Error cases with special return values:"
+.
+ An error occurs while waiting for disk to be destroyed: Returns exit code 3
+     NOTE: When this occurs, the disk may or may not be destroyed.
+     Please run "show disks" and check if the disk is on the list.
+.RE
+.TP
+\fBdestroy \fBvm \fIVM\fR
+Destroy given non-running instance.
+Note that any attached disks or IPs will still exist and continue to incur charges.
+.RS
+.TP
+.I "VM"
+.
+Name of the instance to delete.
+.
+.TP
+.B "Error cases with special return values:"
+.
+ VM does not exist: Return exit code 3
+.RE
+.TP
+\fBadd \fBcontext \fBto \fBvm \fIVM \fBwith \fIKEY \fB= \fIVALUE\fR
+Add a new context item into the key value context storage for the given VM.
+Valid keys must not contain whitespace but values may.
+If a key already exists, it will be overwritten.
+.RS
+.TP
+.I "VM"
+.
+Name of the vm to attach the key value data to.
+.
+.TP
+.I "KEY"
+.
+The key to map the given value to.
+May not contain whitespace.
+.
+.TP
+.I "VALUE"
+.
+The value to attach to the given key.
+.
+.TP
+.B "Error cases with special return values:"
+.
+ If the VM does not exist: Return exit code 3
+.RE
+.TP
+\fBclear \fBcontext \fBkey \fIKEY \fBfrom \fBvm \fIVM\fR
+Remove the given key value data from the given VM context store.
+THIS FUNCTION IS NOT YET IMPLEMENTED
+.RS
+.TP
+.I "KEY"
+.
+Key of the data to remove from the key value store
+.
+.TP
+.I "VM"
+.
+The name of the VM to clear the key value data from.
+.
+.TP
+.B "Error cases with special return values:"
+.
+ If the given vm does not exist, exit code 3 is returned
+ If the given key does not exist in the context store, exit code 4 is returned
+.RE
+.TP
+\fBset \fBpassword \fBon \fBvm \fIVM[ \fBto \fIPASSWORD]\fR
+On next boot, vm will have password set to the given password.
+Note that this requires we store the password in our system, in plaintext.
+As such you may wish to instead use a temporary password here then change it manually.
+To this end, a random password is chosen if none is provided.
+.RS
+.TP
+.I "VM"
+.
+The vm to set the password of.
+Note that while a change may be made while the vm is running,
+changes will not take effect until the next boot.
+.
+.TP
+.I "PASSWORD"
+.
+Optional.
+The new password to set.
+May contain whitespace.
+If not given, a random 8 character password is generated.
+.
+.TP
+.B "Output format string for quiet mode:"
+.
+"%s "   ->   New password
+.TP
+.B "Error cases with special return values:"
+.
+ If the VM does not exist: Return exit code 3
+.RE
+.TP
+\fB# \fICOMMENT\fR
+A line beginning with a "#" is a comment line.
+This line will be ignored.
+This can be useful when writing scripts to be used with the -f option.
+.RS
+.RE
+.TP
+\fBquit\fR
+Exit the program.
+Has no effect if given in command line options.
+Note that an EOF (Ctrl-D) can also be used to exit.
+.RS
+.RE
+.TP
+\fBset \fBram \fBon \fBvm \fINAME \fBto \fISIZE\fR
+Update the ram of a VM.
+VM Must be stopped.
+.RS
+.TP
+.I "NAME"
+.
+The name of the VM.
+.
+.TP
+.I "SIZE"
+.
+Amount of RAM to set on the VM.
+Format is a number followed by M for megabytes or G for gigabytes.
+Value must be between 512M and 64G (65536M) errors: 
+.
+.RE
+.TP
+\fBhelp \fI[COMMAND]\fR
+Print help on the given command.
+If no command is given, prints a list of commands.
+.RS
+.TP
+.I "COMMAND"
+.
+Optional arg.
+If given, it specifies a command to print detailed help on.
+.
+.TP
+.B "Error cases with special return values:"
+.
+ Command not found: Returns exit code 3
+.RE
+.SH EXIT STATUS
+.TP
+0
+Command completed successfully (for a command given as an argument).
+.TP
+0
+Program reached quit command or end of input (for reading commands from input).
+.TP
+1
+Error in parsing command line arguments, or command not found.
+.TP
+2
+Unknown error. Common causes include but are not limited to
+incorrect authentication, internet connectivity issues or an invalid operation
+(such as trying to delete a locked disk).
+.TP
+3-64
+Reserved for command-specific errors. See section
+.I "COMMANDS"
+for details.
+.SH FILES
+.TP
+~/.orionauth
+Default authentication file. See subsection
+.I "Authentication"
+for details.
+.SH NOTES
+In the current implementation of 
+.BR "ovm-ctl console" ","
+the user's OrionVM password
+is passed to
+.BR "ssh" "(1)"
+as a command line argument.
+This means that the password is readable, in plaintext, to all users of the computer.
+Please avoid using the command on a computer where other people may have access to the process list.
+Note that this applies only to 
+.BR "ovm-ctl" ","
+and the web panel in-browser console is completely safe.
