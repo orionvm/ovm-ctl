@@ -1,8 +1,0 @@
-#!/bin/sh
-
-OVM_CTL_DIR='/usr/share/ovm-ctl'
-MAIN_PY='bindings.py'
-INVOCATION='/usr/bin/python2'
-
-cd "$OVM_CTL_DIR" &&
-exec $INVOCATION "$MAIN_PY" "$@"
