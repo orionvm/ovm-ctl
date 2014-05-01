@@ -3,40 +3,33 @@ ovm-ctl  -  OrionVM Command Line API Bindings
 
 
 To run, you will require the following:
-	python
-	python-simplejson
+	python2
 
-To install from the ready-to-install tarball:
-	Copy the usr directory into your root directory:
-		[user@host]$ cp -r usr /
+To install, you will require the following:
+	python-setuptools
 
-	You can now use ovm-ctl:
-		[user@host]$ ovm-ctl
-	and access its man page:
-		[user@host]$ man 1 ovm-ctl
 
-To install from the git repository:
-	Change directory into the "packages" directory.
-	Run the "genpackage" script.
-	If you do not wish to build the deb,
-	you can edit the script and comment out
-	the offending sections "Writing DEBIAN metadata" and "Making debian package".
-	Once the script has run, you can change directory to the new version directory,
-	and from there follow the instructions above for the tarball.
+Install:
+	1. sudo python setup.py install
 
-	Alternately, a fully manual install:
-		- Move all the files to an install location of your choosing, such as /usr/share/ovm-ctl
-		- Move "ovm-ctl" to a folder in your PATH, such as /usr/bin
-		- Optionally, run "python gendocs.py > /usr/share/man/man1/ovm-ctl.1" to generate a man page.
+This will install the python bindings, and also the start script (ovm-ctl) will be in your path
 
-Alternately, a debian package is avilable.
+ovm-ctl can be called as is and used interactively, or it can be called with arguments like e.g.
+ovm-ctl show vms
 
-OrionVM offers full support for ovm-ctl on our debian-lenny and ubuntu-lucid images,
-	and limited support for other debian and ubuntu versions.
-CentOS is not supported at this time.
 
-Debian package available here:
-https://github.com/orionvm/ovm-ctl/blob/master/package/ovm-ctl-latest.deb?raw=true
+The webbindings can be used like this
 
-Ready-to-install tar.gz:
-https://github.com/orionvm/ovm-ctl/blob/master/package/ovm-ctl-latest.tar.gz?raw=true
+## example.py ##
+from ovm_ctl.webbindings import apibindings as ovm
+
+api = ovm('user@example.com', 'password!')
+vms = api.vm_pool()
+
+for vm in vms:
+	print "%(hostname)s\t%(ram)d" % vm
+
+################
+
+
+OrionVM offers full support for ovm-ctl with regards to HVM based images
