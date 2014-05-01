@@ -12,7 +12,7 @@ except ImportError:
 
 from sslverify import ValidHTTPSHandler
 
-from version import VERSION
+from ovm_ctl import __version__ as VERSION
 
 # This file contains the web api object itself, without all the fancy wrapping.
 # If you want to use this for your python program, just create a apibindings object.

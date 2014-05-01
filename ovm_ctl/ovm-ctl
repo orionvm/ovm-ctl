@@ -1,15 +1,17 @@
+#!/usr/bin/env python
+
 DEBUG=False # Change this to true to have --debug by default. Useful if code is failing before option parsing is reached.
 
 import sys
 import re
-from webbindings import apibindings, extra_r, HTTPException
-import routes
 import os
 import getpass
 import sys
-from parsedocs import docs2dict
 from getopt import gnu_getopt, GetoptError
-from helping import helping
+from ovm_ctl import routes
+from ovm_ctl.webbindings import apibindings, extra_r, HTTPException
+from ovm_ctl.helping import helping
+from ovm_ctl.parsedocs import docs2dict
 
 def quit(*args):
 	"""call: 'quit'
