@@ -6,10 +6,10 @@
 # If you've made changes to stuff in other py files and would like the man page to reflect the changes,
 # run "python gen_docs.py > /usr/share/man/man1/ovm-ctl.1" and it should just happen.
 
-from parsedocs import docs2dict
-from bindings import routes # import from bindings so we get the extra commands that bindings tacks on
-from bindings import options
-from man_writing import *
+from ovm_ctl.parsedocs import docs2dict
+from ovm_ctl.bindings import routes # import from bindings so we get the extra commands that bindings tacks on
+from ovm_ctl.bindings import options
+from ovm_ctl.man_writing import *
 import re
 
 def man_page():
