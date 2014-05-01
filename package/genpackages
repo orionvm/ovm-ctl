@@ -1,5 +1,6 @@
 #!/bin/bash
 
+set -x
 # This is a really really badly written script that collects the files needed and assembles a few package types.
 
 # Note: Requires everything ovm-ctl does, plus fakeroot, dpkg, tar, gzip
@@ -50,13 +51,13 @@ fi
 
 echo "Copying/Generating files"
 mkdir -p "$activedir/usr/share/ovm-ctl" &&
-cp ../*.py "../extra" ../*.pem "$activedir/usr/share/ovm-ctl" -r &&
+cp ../ovm_ctl/* "$activedir/usr/share/ovm-ctl" -r &&
 rm "$activedir/usr/share/ovm-ctl/"{gen_docs,man_writing}".py"
 mkdir -p "$activedir/usr/bin" &&
-cp "../ovm-ctl" "$activedir/usr/bin" -r &&
+cp "../ovm_ctl/ovm-ctl" "$activedir/usr/bin" &&
 mkdir -p "$activedir/usr/share/man/man1" &&
 echo "VERSION = r'$version'" > "$activedir/usr/share/ovm-ctl/version.py" &&
-( cd ..; python "gen_docs.py" ) > "$activedir/usr/share/man/man1/ovm-ctl.1" || {
+( cd ..; python "ovm_ctl/gen_docs.py" ) > "$activedir/usr/share/man/man1/ovm-ctl.1" || {
 	echo Exiting
 	exit 1
 }
@@ -82,7 +83,7 @@ true || { # Replace true with success condition
 echo "Writing DEBIAN metadata"
 # Note that DEBIAN/control does not contain any version info. So we append it.
 mkdir "$activedir/DEBIAN" &&
-cp DEBIAN/* "$activedir/DEBIAN/" -r &&
+cp -r DEBIAN/* "$activedir/DEBIAN/" &&
 echo "Version: $version" >> "$activedir/DEBIAN/control" || {
 	echo Exiting
 	exit 1
