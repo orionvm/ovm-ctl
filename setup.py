@@ -5,9 +5,7 @@ import os
 
 from ovm_ctl import __version__
 
-data_files = [
-        ('ovm_ctl', ['ovm_ctl/ca.pem', 'ovm_ctl/extra'])
-]
+data_files = []
 man_dir = "/usr/local/man"
 if os.path.isdir(man_dir):
 	data_files.append( (man_dir + '/man1', ['manpage/ovm-ctl.1']) ) 
@@ -23,7 +21,7 @@ setup(name='ovm_ctl',
     packages=['ovm_ctl'],
     scripts=['ovm_ctl/ovm-ctl'],
     package_data={
-        'ovm_ctl': [ 'version', ],
+        'ovm_ctl': [ 'ca.pem', 'extra' ],
     },
     data_files=data_files,
     zip_safe=False
