@@ -1,0 +1,3 @@
+include manpage/ovm-ctl.1
+include LICENSE
+include README

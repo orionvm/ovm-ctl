@@ -16,6 +16,7 @@ setup(name='ovm_ctl',
     package_data={
         'ovm_ctl': [ 'ca.pem', 'extra' ],
     },
-    data_files=[ ('man/man1', ['manpage/ovm-ctl.1']) ],
+    data_files=[ ('man/man1', ['manpage/ovm-ctl.1']),
+		 ('', ['README', 'LICENSE']) ],
     zip_safe=False
 )
