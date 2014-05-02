@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 
 from setuptools import setup
-import os
-
 from ovm_ctl import __version__
 
 setup(name='ovm_ctl',
