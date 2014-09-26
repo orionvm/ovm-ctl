@@ -23,7 +23,7 @@ def runconsole(vmname, istty, api):
 	"""
 
 	console_ip = '49.156.16.12' # IP of OVM console server
-	console_rsa = "%s ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA1ZKuRj8UkoCUvGKGSGd9vQAlP3uCmq+8vBdF/SeZ2sr0Gf9+ZTn5Di8EGBBwOArU791VTtTWTg2kSC6xbearWH9xxD8omnjaYyBmqBLZ0yimVuIQWh3QS5YglxdQoGZUJ7a7ddQDLvO11f4eirP6HcNYSfGT5070jqoEiETmdcoQsdsxdJFs6GBssMoMij1i4HRDbCDPMdViEOQ19LQBCd3LsTFcmZJ/LIO9BCxsSeyV5IPkUVVzVc29JOmqDbCTcHuOidrupVheSSkZjhB0Cq6L8tOaFP/5gj7Ab6PiZPC3hOoLFgPJ3zk50RfAT2/enKqwHQFnN1QzfBBMg1kJiw==" % console_ip
+	console_rsa = "%s ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCzufEnOKEipxlbNqqWGy/yYMJi9g9/Co/dL4D+3RzhfH4aBDnIlrM8vfOAtIZ3UoXy7Bo9ZQdu+5XZVyZ4+ejQFJdjnphHEf82dJpwKhWajnCkqsakUBt9RoAVRKOJYxI9lCdW9xUlmr9CwpmWEnpy+fQwV4mDAa2q/eaVPk6cHvwCwYNbdyHahBrmP2EMsLShs4YQfY5hsufAN8KJPClPTn4qHYaHLHO6WwcB11uZJXEGLV4tvyfIpXVt8h6RTY4A7/b67eFFwz93Bca2/VElXgSNjW8IjF8dJdWrGNTj+2ndNE0ZdJYzO//lRyy/n7vpVUH7UmWLz4S/XfSYwZ9D" % console_ip
 	
 	# Check vmname exists. This also checks user/pswd is valid.
 	if not getvmby(vmname, api, what='hostname'):
